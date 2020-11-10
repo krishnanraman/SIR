@@ -1,0 +1,87 @@
+---
+title: "Sampling Importance Resampling Algo"
+author: "Krishnan Raman"
+date: "11/10/2020"
+output: pdf_document
+---
+
+SIR Algo See 6.3.1 Computational Statistics Givens Hoeting
+0. Goal: Want samples from f
+1. Sample from envelope g
+2. Compute weights = density(f)/density(g) for all samples
+3. normalize weights
+4. Resample from g with replacement, with prob = weights.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Step 0, 1. Just show f & the envelope g. Make sure g encloses f
+# Want samples from f = U[0,1]
+# Will use g ~ 3*N(0.5,1)
+x=seq(-3,3,0.1)
+y=3*dnorm(x,0.5,1)
+y2 = dunif(x,0,1)
+plot(x,y,'l')
+lines(x,y2,'l',col='red')
+```
+```{r}
+# Step 1-4
+# sample from g
+n = 10000
+mu = 0.5
+sd = 1
+gsamp = 3*rnorm(n,mu,sd)
+
+# make f/g as weight
+w=sapply(gsamp, function(i) { dunif(i,0,1)/dnorm(i,mu,sd) })
+
+# normalize weights
+W = sum(w)
+w = w/W
+
+# resample from g with replacement using w as probabilities
+usamp<- sample(gsamp, n, replace=TRUE, prob=w)
+
+# check histogram, moments
+hist(usamp, xlim=c(0,2), breaks=10)
+summary(usamp)
+print(paste("Sample variance: ", var(usamp)))
+print(paste("True variance of U[0,1] is 1/12", 1/12))
+```
+```{r}
+#Step 0, 1. Just show f & the envelope g. Make sure g encloses f
+# Want samples from f = N(0,1)
+# Will use g ~ U(-4,4)
+x=seq(-4,4,0.1)
+y=3.5*dunif(x,-4,4)
+y2 = dnorm(x,0,1)
+plot(x,y,'l', ylim=c(0,1), xlim=c(-4,4))
+lines(x,y2,'l',col='red')
+```
+```{r}
+# Step 1-4
+# sample from g
+n = 10000
+mu = 0.5
+sd = 1
+gsamp = 3.5*runif(n,-4,4)
+
+# make f/g as weight
+w=sapply(gsamp, function(i) { dnorm(i,0,1)/dunif(i,-4*3.5,4*3.5) })
+
+# normalize weights
+W = sum(w)
+w = w/W
+
+# resample from g with replacement using w as probabilities
+nsamp<- sample(gsamp, n, replace=TRUE, prob=w)
+
+# check histogram, moments
+hist(nsamp, xlim=c(-4,4))
+summary(nsamp)
+print(paste("Sample variance: ", var(nsamp)))
+```
+
+
